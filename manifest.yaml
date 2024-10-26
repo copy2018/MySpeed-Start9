@@ -1,0 +1,94 @@
+id: myspeed
+title: "MySpeed"
+version: 1.0.9
+release-notes: |
+  * MySpeed First Package
+license: MIT
+wrapper-repo: "https://github.com/remcoros/uptime-kuma-startos"
+upstream-repo: "https://github.com/louislam/uptime-kuma"
+support-site: "https://github.com/louislam/uptime-kuma/issues"
+marketing-site: "https://github.com/louislam/uptime-kuma"
+donation-url: "https://opencollective.com/uptime-kuma"
+build: ["make"]
+description:
+  short: Speed test analysis software that tests your internet speed periodically for up to 30 days
+  long: |
+    MySpeed is a speed test analysis software that stores the speed of your internet for up to 30 days. This can be useful if you want to know when your network might have drops or if you want to check if your internet matches the booked values from your contract. MySpeed automatically creates tests every hour, which you can view in the dashboard. Tests older than 30 days are automatically deleted to keep the dashboard clean.
+assets:
+  license: LICENSE
+  icon: icon.png
+  instructions: instructions.md
+main:
+  type: docker
+  image: main
+  entrypoint: "docker_entrypoint.sh"
+  args: []
+  mounts:
+    main: /app/data
+  gpu-acceleration: false
+hardware-requirements:
+  arch:
+    - x86_64
+    - aarch64
+health-checks: {}
+#  web-ui:
+#    name: MySpeed User Interface
+#    success-message: Ready to be visited in a web browser
+#    type: script
+config: ~
+properties: ~
+volumes:
+  main:
+    type: data
+interfaces:
+  main:
+    name: User Interface
+    description: MySpeed Web user interface
+    tor-config:
+      port-mapping:
+        80: "5216"
+    lan-config:
+      443:
+        ssl: true
+        internal: 5216
+    ui: true
+    protocols:
+      - tcp
+      - http
+dependencies: {}
+backup:
+  create:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - create
+      - /mnt/backup
+      - /app/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /app/data
+  restore:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - restore
+      - /mnt/backup
+      - /app/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /app/data
+migrations:
+  from:
+    "*":
+      type: script
+      args: ["from"]
+  to:
+    "*":
+      type: script
+      args: ["to"]
