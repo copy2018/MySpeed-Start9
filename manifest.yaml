@@ -4,11 +4,11 @@ version: 1.0.9
 release-notes: |
   * MySpeed First Package
 license: MIT
-wrapper-repo: "https://github.com/remcoros/uptime-kuma-startos"
-upstream-repo: "https://github.com/louislam/uptime-kuma"
-support-site: "https://github.com/louislam/uptime-kuma/issues"
-marketing-site: "https://github.com/louislam/uptime-kuma"
-donation-url: "https://opencollective.com/uptime-kuma"
+wrapper-repo: "https://github.com/j34g/MySpeed-Start9"
+upstream-repo: "https://github.com/gnmyt/myspeed"
+support-site: "https://github.com/gnmyt/myspeed/issues"
+marketing-site: "https://github.com/gnmyt/myspeed"
+donation-url: "https://ko-fi.com/gnmyt"
 build: ["make"]
 description:
   short: Speed test analysis software that tests your internet speed periodically for up to 30 days
