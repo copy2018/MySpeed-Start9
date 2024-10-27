@@ -1,94 +1,60 @@
-id: myspeed
-title: "MySpeed"
-version: 1.0.9
-release-notes: |
-  * MySpeed First Package
-license: MIT
-wrapper-repo: "https://github.com/j34g/MySpeed-Start9"
-upstream-repo: "https://github.com/gnmyt/myspeed"
-support-site: "https://github.com/gnmyt/myspeed/issues"
-marketing-site: "https://github.com/gnmyt/myspeed"
-donation-url: "https://ko-fi.com/gnmyt"
-build: ["make"]
-description:
-  short: Speed test analysis software that tests your internet speed periodically for up to 30 days
-  long: |
-    MySpeed is a speed test analysis software that stores the speed of your internet for up to 30 days. This can be useful if you want to know when your network might have drops or if you want to check if your internet matches the booked values from your contract. MySpeed automatically creates tests every hour, which you can view in the dashboard. Tests older than 30 days are automatically deleted to keep the dashboard clean.
-assets:
-  license: LICENSE
-  icon: icon.png
-  instructions: instructions.md
-main:
-  type: docker
-  image: main
-  entrypoint: "docker_entrypoint.sh"
-  args: []
-  mounts:
-    main: /app/data
-  gpu-acceleration: false
-hardware-requirements:
-  arch:
-    - x86_64
-    - aarch64
-health-checks: 
-  web-ui:
-    name: MySpeed User Interface
-    success-message: Ready to be visited in a web browser
-    type: script
-config: ~
-properties: ~
-volumes:
-  main:
-    type: data
-interfaces:
-  main:
-    name: User Interface
-    description: MySpeed Web user interface
-    tor-config:
-      port-mapping:
-        80: "5216"
-    lan-config:
-      443:
-        ssl: true
-        internal: 5216
-    ui: true
-    protocols:
-      - tcp
-      - http
-dependencies: {}
-backup:
-  create:
-    type: docker
-    image: compat
-    system: true
-    entrypoint: compat
-    args:
-      - duplicity
-      - create
-      - /mnt/backup
-      - /app/data
-    mounts:
-      BACKUP: /mnt/backup
-      main: /app/data
-  restore:
-    type: docker
-    image: compat
-    system: true
-    entrypoint: compat
-    args:
-      - duplicity
-      - restore
-      - /mnt/backup
-      - /app/data
-    mounts:
-      BACKUP: /mnt/backup
-      main: /app/data
-migrations:
-  from:
-    "*":
-      type: script
-      args: ["from"]
-  to:
-    "*":
-      type: script
-      args: ["to"]
+PKG_ID := $(shell yq e ".id" manifest.yaml)
+PKG_VERSION := $(shell yq e ".version" manifest.yaml)
+TS_FILES := $(shell find ./ -name \*.ts)
+
+.DELETE_ON_ERROR:
+
+all: verify
+
+arm:
+	@rm -f docker-images/x86_64.tar
+	@ARCH=aarch64 $(MAKE)
+
+x86:
+	@rm -f docker-images/aarch64.tar
+	@ARCH=x86_64 $(MAKE)
+
+verify: $(PKG_ID).s9pk
+	@start-sdk verify s9pk $(PKG_ID).s9pk
+	@echo " Done!"
+	@echo "   Filesize: $(shell du -h $(PKG_ID).s9pk) is ready"
+
+install:
+	@if [ ! -f ~/.embassy/config.yaml ]; then echo "You must define \"host: http://server-name.local\" in ~/.embassy/config.yaml config file first."; exit 1; fi
+	@echo "\nInstalling to $$(grep -v '^#' ~/.embassy/config.yaml | cut -d'/' -f3) ...\n"
+	@[ -f $(PKG_ID).s9pk ] || ( $(MAKE) && echo "\nInstalling to $$(grep -v '^#' ~/.embassy/config.yaml | cut -d'/' -f3) ...\n" )
+	@start-cli package install $(PKG_ID).s9pk
+
+clean:
+	rm -rf docker-images
+	rm -f $(PKG_ID).s9pk
+	rm -f scripts/*.js
+
+scripts/embassy.js: $(TS_FILES)
+	deno bundle scripts/embassy.ts scripts/embassy.js
+
+docker-images/aarch64.tar: manifest.yaml Dockerfile docker_entrypoint.sh
+ifeq ($(ARCH),x86_64)
+else
+	mkdir -p docker-images
+	docker buildx build --tag start9/$(PKG_ID)/main:$(PKG_VERSION) \
+		--platform=linux/arm64 -o type=docker,dest=docker-images/aarch64.tar .
+endif
+
+docker-images/x86_64.tar: manifest.yaml Dockerfile docker_entrypoint.sh
+ifeq ($(ARCH),aarch64)
+else
+	mkdir -p docker-images
+	docker buildx build --tag start9/$(PKG_ID)/main:$(PKG_VERSION) \
+		--platform=linux/amd64 -o type=docker,dest=docker-images/x86_64.tar .
+endif
+
+$(PKG_ID).s9pk: manifest.yaml instructions.md icon.png LICENSE scripts/embassy.js docker-images/aarch64.tar docker-images/x86_64.tar scripts/procedures/healthChecks.ts
+ifeq ($(ARCH),aarch64)
+	@echo "start-sdk: Preparing aarch64 package ..."
+else ifeq ($(ARCH),x86_64)
+	@echo "start-sdk: Preparing x86_64 package ..."
+else
+	@echo "start-sdk: Preparing Universal Package ..."
+endif
+	@start-sdk pack
