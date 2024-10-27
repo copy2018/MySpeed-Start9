@@ -30,11 +30,11 @@ hardware-requirements:
   arch:
     - x86_64
     - aarch64
-health-checks: {}
-#  web-ui:
-#    name: MySpeed User Interface
-#    success-message: Ready to be visited in a web browser
-#    type: script
+health-checks: 
+  web-ui:
+    name: MySpeed User Interface
+    success-message: Ready to be visited in a web browser
+    type: script
 config: ~
 properties: ~
 volumes:
