@@ -10,16 +10,15 @@ WORKDIR /myspeed
 # Clone the MySpeed repository from GitHub
 RUN git clone https://github.com/gnmyt/myspeed.git .
 
-# Install dependencies for the entire application
-RUN yarn config set network-timeout 600000  # 10 minutes
-RUN yarn install
+# Install dependencies for the entire application (using npm for compatibility with package-lock.json)
+RUN npm install --legacy-peer-deps
 
-# Build the client application
-RUN cd client && yarn install --force
+# Build the client application using npm instead of yarn to avoid conflicts
+RUN cd client && npm install --legacy-peer-deps
 RUN cd client && npm run build
 
 # Move built client files to the correct location
-RUN mv client/build .
+RUN mv client/build . 
 
 # Stage 2: Production
 FROM node:18-alpine
@@ -49,4 +48,5 @@ EXPOSE 5216
 # Start the application
 CMD ["node", "server/server.js"]
 
+# Add the entrypoint script
 ADD ./docker_entrypoint.sh /usr/local/bin/docker_entrypoint.sh
