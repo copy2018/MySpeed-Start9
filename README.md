@@ -42,7 +42,7 @@ Install the system dependencies below to build this project by following the ins
 
 ## Cloning
 
-Clone the Webtop package repository locally.
+Clone the package repository locally.
 
 ```
 git clone https://github.com/j34g/MySpeed-Start9.git
@@ -81,7 +81,7 @@ start-cli auth login
 make install
 ```
 
-**Tip:** You can also install the public-pool.s9pk by sideloading it under the **StartOS > System > Sideload a Service** section.
+**Tip:** You can also install the myspeed.s9pk by sideloading it under the **StartOS > System > Sideload a Service** section.
 
 ## Verify Install
 
