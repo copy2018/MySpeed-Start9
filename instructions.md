@@ -12,7 +12,7 @@ MySpeed is a speed test analysis software that records your internet speed for u
 
 📆 Test results can be stored for up to 30 days
 
-🗳️ Choose between Ookla, LibreSpeed and Cloudflare speed test servers (Choose Ookla for the most cosistency)
+🗳️ Choose between Ookla, LibreSpeed and Cloudflare speed test servers (Choose Ookla for the most consistency)
 
 
 
