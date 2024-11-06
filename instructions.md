@@ -6,7 +6,7 @@ MySpeed is a speed test analysis software that records your internet speed for u
 
 📊 MySpeed generates clear statistics on speed, ping, and more
 
-⏰ MySpeed automates speed tests and allows you to set the time between tests using Cron expressions
+⏰ MySpeed automates speed tests and allows you to set the time between tests
 
 🗄️ Add multiple servers directly to a MySpeed instance
 
